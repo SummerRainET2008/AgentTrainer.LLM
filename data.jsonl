@@ -1,0 +1,6 @@
+{"prompt": "(0 + 1) * (4 + 5)", "meta": "physics"}
+{"prompt": "(1 + 2) * (7 + 10)", "meta": "physics"}
+{"prompt": "(2 + 3) * (7 + 10)", "meta": "physics"}
+{"prompt": "(3 + 4) * (7 + 10)", "meta": "physics"}
+{"prompt": "(4 + 5) * (7 + 10)", "meta": "physics"}
+{"prompt": "(5 + 5) * (7 + 10)", "meta": "physics"}

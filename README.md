@@ -1,1 +1,2 @@
-# AgentTrainer.LLM
+>> pip install "openrlhf[vllm]" --no-build-isolation
+

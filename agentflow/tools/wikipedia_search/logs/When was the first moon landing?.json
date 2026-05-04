@@ -1,0 +1,56 @@
+{
+    "query": "When was the first moon landing?",
+    "relevant_pages": [],
+    "other_pages (may be irrelevant to the query)": [
+        {
+            "title": "Apollo 11",
+            "url": "https://en.wikipedia.org/wiki/Apollo_1",
+            "abstract": "Apollo 1, initially designated AS-204, was planned to be the first crewed mission of the Apollo prog... [truncated]"
+        },
+        {
+            "title": "Moon landing",
+            "url": "https://en.wikipedia.org/wiki/Moon_landing",
+            "abstract": "A Moon landing or lunar landing is the arrival of a spacecraft on the surface of the Moon, including... [truncated]"
+        },
+        {
+            "title": "Moon landing conspiracy theories",
+            "url": "https://en.wikipedia.org/wiki/Moon_landing_conspiracy_theories",
+            "abstract": "Conspiracy theories claim that some or all elements of the Apollo program and the associated Moon la... [truncated]"
+        },
+        {
+            "title": "Third-party evidence for Apollo Moon landings",
+            "url": "https://en.wikipedia.org/wiki/Third-party_evidence_for_Apollo_Moon_landings",
+            "abstract": "Third-party evidence for the Apollo Moon landings is evidence or analysis of evidence about the Apol... [truncated]"
+        },
+        {
+            "title": "List of Apollo missions",
+            "url": "https://en.wikipedia.org/wiki/List_of_Apollo_missions",
+            "abstract": "The Apollo program was a United States human spaceflight program carried out from 1961 to 1972 by th... [truncated]"
+        },
+        {
+            "title": "Apollo program",
+            "url": "https://en.wikipedia.org/wiki/Apollo_program",
+            "abstract": "The Apollo program, also known as Project Apollo, was the United States human spaceflight program le... [truncated]"
+        },
+        {
+            "title": "List of missions to the Moon",
+            "url": "https://en.wikipedia.org/wiki/List_of_missions_to_the_Moon",
+            "abstract": "Missions to the Moon have been numerous and represent some of the earliest endeavours in space missi... [truncated]"
+        },
+        {
+            "title": "Artemis IV",
+            "url": "https://en.wikipedia.org/wiki/Artemis_II",
+            "abstract": "Artemis II (April 1\u201311, 2026) was a crewed flyby of the Moon. It was the first crewed flight of the ... [truncated]"
+        },
+        {
+            "title": "Starship HLS",
+            "url": "https://en.wikipedia.org/wiki/Starship_HLS",
+            "abstract": "Starship HLS (Human Landing System) is a lunar lander variant of the Starship spacecraft  that is sl... [truncated]"
+        },
+        {
+            "title": "Moon Landing (album)",
+            "url": "https://en.wikipedia.org/wiki/Moon_Landing_(album)",
+            "abstract": "Moon Landing is the fourth studio album by British singer-songwriter James Blunt, released on 18 Oct... [truncated]"
+        }
+    ]
+}
