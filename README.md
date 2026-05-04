@@ -1,4 +1,4 @@
-# OpenRLHF AgentTrainer + AgentFlow
+# Agent Trainer
 
 <p align="center">
   <em>Train multi-step LLM agents with RLHF, inspired by AgentFlow-style task decomposition.</em>
@@ -6,11 +6,15 @@
 
 ## Outline
 
-- [What This Repo Is](#what-this-repo-is)
-- [Why It Matters](#why-it-matters)
-- [AgentFlow Paper (Concise)](#agentflow-paper-concise)
-- [Quick Start](#quick-start)
-- [Main Paths](#main-paths)
+- [What This Repo Is](##what-this-repo-is)
+- [Why It Matters](##why-it-matters)
+  - [Prompt Comparison](##Training Comparison)
+  - [Training Comparison]()
+  - [Pros and Cons](Pros and Cons)
+
+- [AgentFlow Paper (Concise)](##agentflow-paper-concise)
+- [Quick Start](##quick-start)
+- [Main Paths](##main-paths)
 
 ---
 
