@@ -16,29 +16,29 @@
 
 ## What This Repo Is
 
-This repository started as an attempt to add AgentFlow as a generic plugin inside OpenRLHF. After implementation, the better direction was to keep OpenRLHF unchanged and show a **compatible integration pattern** in a lightweight way.
-I would show you how I weigh the pros and cons.
+This repository started as an attempt to add AgentFlow as a generic plugin inside OpenRLHF. After implementation, a better direction emerged: keep OpenRLHF unchanged and show a **compatible integration pattern** in a lightweight way.
+I also share how I weighed the pros and cons.
 
-Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online Reinforcement Learning implementation, motivating breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
+Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online reinforcement learning implementation that motivates breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
 
 This project combines:
 
 - **OpenRLHF-based training** (`openrlhf_agent/`) for scalable RLHF loops (PPO/Ray/vLLM).
 - **AgentFlow-style solver logic** (`agentflow/`) with role separation:
-  `Initializer -> Planner -> Executor -> Verifier`. To better demonstrate the idea, I simplified the AgentFlow and kept core codes.
-- **Training entrypoints** (`train/`, `scripts/`) for real multi-GPU workflows. I demonstrate how to train in OpenRLHF without modifying foundermental codes, as opposed to heavy custom codes in original AgentFlow's implementation.
+  `Initializer -> Planner -> Executor -> Verifier`. To better demonstrate the idea, I simplified AgentFlow while keeping the core code.
+- **Training entrypoints** (`train/`, `scripts/`) for real multi-GPU workflows. I demonstrate how to train in OpenRLHF without modifying fundamental code, rather than relying on heavy custom code from the original AgentFlow implementation.
 
 ## Why It Matters
 
-I really like the concept of Agent, which is beautiful from the perspective of a user and the engineering part. This motivates me to implement as a generic algorithm that all OpenRLHF users could straightforwardly try it.
+I really like the concept of agents from both the user and engineering perspectives. This motivated me to implement it as a generic approach that OpenRLHF users can try directly.
 
-### Prompt comparison
+### Prompt Comparison
 
-For your easier understanding, I first explain their difference in prompt design in the training. The traditional multi-turn reinforcmeent leanring (multi-step RL) supports tools, task decomposition, just as AgentFLow does. Multi-step RL training keeps appending new output, such as CoT, tooling calling command, tool calling results, all intermediate information, to the current prompt to form a new one for the next-turn LLM invoking. As all history information is encompasses into a flat string, we call this the unstructural style. 
+To make the distinction easier to understand, I first explain the difference in training prompt design. Traditional multi-turn reinforcement learning (multi-step RL) supports tools and task decomposition, just as AgentFlow does. Multi-step RL training keeps appending new outputs, such as CoT, tool-calling commands, tool-calling results, and other intermediate information, to the current prompt to form the next-turn LLM prompt. Because all historical information is packed into a flat string, I call this the unstructured style.
 
-In comparison, an Agent system woudl maintain important information in a key-mapping style, called memory, in its training and inference procedure, and we call this the structural style. Different agents would generate their distinctive prompts, which makes the LLM more effectively understand the history information. 
+In comparison, an agent system maintains important information in a key-mapped structure, called memory, during both training and inference, and I call this the structured style. Different agents generate distinct prompts, which helps the LLM understand historical information more effectively.
 
-__Example__: A planner's prompt. A planner agent would encapsulate the  history with planning related instructions, without any about a verifier agent or a solution generating agent.
+__Example__: A planner's prompt. A planner agent encapsulates history with planning-related instructions, without instructions for a verifier agent or a solution-generating agent.
 
     Task: Analyze the given query with accompanying inputs and determine the skills and tools needed to address it effectively.
       Available tools: {available_tools}
@@ -64,7 +64,7 @@ __Example__: A planner's prompt. A planner agent would encapsulate the  history 
 
 
 
-___Example___: A verifier's prompt. A verifier agent would only focus on instructing how to verify whether the currect reasoning and results are grounded and sufficient to generate the final result.
+___Example___: A verifier's prompt. A verifier agent focuses only on checking whether the current reasoning and results are grounded and sufficient to generate the final result.
 
     Task: Thoroughly evaluate the completeness and accuracy of the memory for fulfilling the given query, considering the potential need for additional tool usage.
 
@@ -125,7 +125,7 @@ ___Example___: A verifier's prompt. A verifier agent would only focus on instruc
       IMPORTANT: Your response MUST end with either 'Conclusion: STOP' or 'Conclusion: CONTINUE' and nothing else. Ensure your explanation thoroughly justifies this conclusion.
 
 
-Let's look back on the classic ___Multi-step RL training___, the required prompt is like this:
+Let's look back at classic ___Multi-step RL training___, where the required prompt looks like this:
 
 
     Given a query, available tools, and metadata for tools:
@@ -187,17 +187,17 @@ Let's look back on the classic ___Multi-step RL training___, the required prompt
     Your current task is task_name=[query_analysis], your responses are as follows:\n
   
 
-In this holistic prompt, each task_name=[...] accutually corresponds to an agent in AgentFlow. The expected LLM output is to tell what is next step task (or agent).
+In this holistic prompt, each task_name=[...] actually corresponds to an agent in AgentFlow. The expected LLM output is the next-step task (or agent).
 
     [round=0]
     Your current task is task_name=[query_analysis], your responses are as follows:\n
 
 
-This prompt keeps appending new responses, including instruction of calling some agent, output of the agent, in an incremental style.
+This prompt keeps appending new responses, including instructions to call an agent and the agent outputs, in an incremental style.
 
-### Training comparison
+### Training Comparison
 
-### Pros and cons
+### Pros and Cons
 
 
 OpenRLHF provides the optimization backbone, while AgentFlow adds structured reasoning across multiple turns.  
