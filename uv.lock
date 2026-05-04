@@ -36,8 +36,8 @@ wheels = [
 ]
 
 [[package]]
-name = "agentflow"
-version = "0.1.2"
+name = "agenttrainer"
+version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "datasets", marker = "sys_platform == 'linux'" },
