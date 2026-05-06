@@ -1,7 +1,7 @@
 # Agent Trainer
 
 <p align="center">
-  <em>Train multi-step LLM agents with RLHF, inspired by AgentFlow-style task decomposition.</em>
+  <em>Train multi-turn LLM agents with RLHF, inspired by AgentFlow</em>
 </p>
 
 ## Outline
@@ -36,169 +36,119 @@ I really like the concept of agents from both the user and engineering perspecti
 
 ### Prompt Comparison
 
-To make the distinction easier to understand, I first explain the difference in training prompt design. Traditional multi-turn reinforcement learning (multi-step RL) supports tools and task decomposition, just as AgentFlow does. Multi-step RL training keeps appending new outputs, such as CoT, tool-calling commands, tool-calling results, and other intermediate information, to the current prompt to form the next-turn LLM prompt. Because all historical information is packed into a flat string, I call this the unstructured style.
+To make the distinction easier to understand, I first explain the difference in training prompt design. Traditional multi-turn reinforcement learning (multi-turn RL) supports tools and task decomposition, just as AgentFlow does. multi-turn RL training keeps appending new outputs, such as CoT, tool-calling commands, tool-calling results, and other intermediate information, to the current prompt to form the next-turn LLM prompt. Because all historical information is packed into a flat string, I call this the unstructured style.
 
 In comparison, an agent system maintains important information in a key-mapped structure, called memory, during both training and inference, and I call this the structured style. Different agents generate distinct prompts, which helps the LLM understand historical information more effectively.
 
-__Example__: A planner's prompt. A planner agent encapsulates history with planning-related instructions, without instructions for a verifier agent or a solution-generating agent.
+__Example: a planner's prompt__. 
 
-    Task: Analyze the given query with accompanying inputs and determine the skills and tools needed to address it effectively.
+A planner agent encapsulates history with planning-related instructions, without instructions for a verifier agent or a solution-generating agent.
+
+
+```
+Task: Analyze the given query with accompanying inputs and determine the skills and tools needed to address it effectively.
       Available tools: {available_tools}
       Metadata for the tools: {toolbox_metadata}
       Image: {image_info}
       Query: {question}
+      
+Instructions:
+  1. Carefully read and understand the query and any accompanying inputs.
+  2. Identify the main objectives or tasks within the query.
+  3. List the specific skills that would be necessary to address the query comprehensively.
+  ... 
+
+Your response should include:
+  1. A concise summary of the query's main points and objectives, as well as content in any accompanying inputs.
+  2. A list of required skills, with a brief explanation for each.
+  ...
+```
+
+
+
+__Example: a verifier's prompt__. 
+
+A verifier agent focuses only on checking whether the current reasoning and results are grounded and sufficient to generate the final result.
+
+```
+Task: Thoroughly evaluate the completeness and accuracy of the memory for fulfilling the given query, considering the potential need for additional tool usage.
+
+Context:
+Query: {question}
+Image: {image_info}
+Available Tools: {available_tools}
+Toolbox Metadata: {toolbox_metadata}
+Initial Analysis: {query_analysis}
+Memory (tools used and results): {memory}
+
+Detailed Instructions:
+  1. Carefully analyze the query, initial analysis, and image (if provided):
+     - Identify the main objectives of the query.
+     - Note any specific requirements or constraints mentioned.
+     - If an image is provided, consider its relevance and what information it contributes.
+
+  2. Review the available tools and their metadata:
+     - Understand the capabilities and limitations and best practices of each tool.
+     - Consider how each tool might be applicable to the query.
+
+  3. Examine the memory content in detail:
+     - Review each tool used and its execution results.
+     - Assess how well each tool's output contributes to answering the query.
+  ...   
+  
+Response Format:
+  ...
+  Conclusion: CONTINUE
+  IMPORTANT: Your response MUST end with either 'Conclusion: STOP' or 'Conclusion: CONTINUE' and nothing else. 
+```      
+
+Let's look back at classic __multi-turn RL training__, where the holistic prompt looks like this:
+
+```
+Given a query, available tools, and metadata for tools:
+query: {query}
+Available tools: {tools}
+Metadata for tools: {tools_metadata}
+
+please strictly follow the instruction of using following tasks and output designated results.
+
+task_name=[query_analysis]
+Task goal: Analyze the given query to determine necessary skills and tools.
 
     Instructions:
-      1. Carefully read and understand the query and any accompanying inputs.
-      2. Identify the main objectives or tasks within the query.
-      3. List the specific skills that would be necessary to address the query comprehensively.
-      4. Examine the available tools in the toolbox and determine which ones might relevant and useful for addressing the query. 
-         Make sure to consider the user metadata for each tool, including limitations and potential applications (if available).
-      5. Provide a brief explanation for each skill and tool you've identified, describing how it would contribute to answering the query.
+    1. Identify the main objectives in the query.
+    ...
 
-    Your response should include:
-      1. A concise summary of the query's main points and objectives, as well as content in any accompanying inputs.
-      2. A list of required skills, with a brief explanation for each.
-      3. A list of relevant tools from the toolbox, with a brief explanation of how each tool would be utilized and its potential limitations.
-      4. Any additional considerations that might be important for addressing the query effectively.
+task_name=[next_step_tool_calling]
+Task goal: Determine the optimal next step to address the query using available tools and previous steps.
 
-    Please present your analysis in a clear, structured format.
+    Instructions:
+    1. Analyze the query, previous steps, and available tools.
+    ...
 
+task_name=[generate_final_output]
+Task: Generate the final output based on the query and the results from all tools used.
 
+    Instructions:
+    1. Review the query and the results from all tool executions.
+    ...
+```
 
-___Example___: A verifier's prompt. A verifier agent focuses only on checking whether the current reasoning and results are grounded and sufficient to generate the final result.
+In each turn, we invoke an anxiliary agents (executor, verifier and generalist solution generator) designated by the planner agent to respond to its output. The planner agent is the exclusive one to be __trainable__. The new analysis, execution results, as well as the __next-turn instruction__, are appended to the prompt, which in turn becomes the prompt of the next-turn agent.
 
-    Task: Thoroughly evaluate the completeness and accuracy of the memory for fulfilling the given query, considering the potential need for additional tool usage.
+```
+{analysis, tool execution ... }
 
-    Context:
-    Query: {question}
-    Image: {image_info}
-    Available Tools: {available_tools}
-    Toolbox Metadata: {toolbox_metadata}
-    Initial Analysis: {query_analysis}
-    Memory (tools used and results): {memory}
+[round=?]
+Your new task is task_name=[?], your responses are as follows:\n
+```    
 
-    Detailed Instructions:
-      1. Carefully analyze the query, initial analysis, and image (if provided):
-         - Identify the main objectives of the query.
-         - Note any specific requirements or constraints mentioned.
-         - If an image is provided, consider its relevance and what information it contributes.
+Hence, each __task_name=[?]__ actually corresponds to an agent transition in AgentFlow. 
 
-      2. Review the available tools and their metadata:
-         - Understand the capabilities and limitations and best practices of each tool.
-         - Consider how each tool might be applicable to the query.
-
-      3. Examine the memory content in detail:
-         - Review each tool used and its execution results.
-         - Assess how well each tool's output contributes to answering the query.
-
-      4. Critical Evaluation (address each point explicitly):
-         a) Completeness: Does the memory fully address all aspects of the query?
-            - Identify any parts of the query that remain unanswered.
-            - Consider if all relevant information has been extracted from the image (if applicable).
-
-         b) Unused Tools: Are there any unused tools that could provide additional relevant information?
-            - Specify which unused tools might be helpful and why.
-
-         c) Inconsistencies: Are there any contradictions or conflicts in the information provided?
-            - If yes, explain the inconsistencies and suggest how they might be resolved.
-
-         d) Verification Needs: Is there any information that requires further verification due to tool limitations?
-            - Identify specific pieces of information that need verification and explain why.
-
-         e) Ambiguities: Are there any unclear or ambiguous results that could be clarified by using another tool?
-            - Point out specific ambiguities and suggest which tools could help clarify them.
-
-      5. Final Determination:
-         Based on your thorough analysis, decide if the memory is complete and accurate enough to generate the final output, or if additional tool usage is necessary.
-
-    Response Format:
-
-      If the memory is complete, accurate, AND verified:
-      Explanation:
-      <Provide a detailed explanation of why the memory is sufficient. Reference specific information from the memory and explain its relevance to each aspect of the task. Address how each main point of the query has been satisfied.>
-
-      Conclusion: STOP
-      If the memory is incomplete, insufficient, or requires further verification:
-      Explanation:
-      <Explain in detail why the memory is incomplete. Identify specific information gaps or unaddressed aspects of the query. Suggest which additional tools could be used, how they might contribute, and why their input is necessary for a comprehensive response.>
-
-      Conclusion: CONTINUE
-      IMPORTANT: Your response MUST end with either 'Conclusion: STOP' or 'Conclusion: CONTINUE' and nothing else. Ensure your explanation thoroughly justifies this conclusion.
-
-
-Let's look back at classic ___Multi-step RL training___, where the required prompt looks like this:
-
-
-    Given a query, available tools, and metadata for tools:
-    query: {query}
-    Available tools: {tools}
-    Metadata for tools: {tools_metadata}
-
-    please strictly follow the instruction of using following tasks and output designated results.
-
-    task_name=[query_analysis]
-    Task goal: Analyze the given query to determine necessary skills and tools.
-
-        Instructions:
-        1. Identify the main objectives in the query.
-        2. List the necessary skills and tools.
-        3. For each skill and tool, explain how it helps address the query.
-        4. Note any additional considerations.
-
-        Format your response with a summary of the query, lists of skills and tools with explanations, and a section for additional considerations.
-
-        Be biref and precise with insight. 
-        This is the end of task_name=[query_analysis]
-
-    task_name=[next_step_tool_calling]
-    Task goal: Determine the optimal next step to address the query using available tools and previous steps.
-
-        Instructions:
-        1. Analyze the query, previous steps, and available tools.
-        2. Select the **single best tool** for the next step.
-        3. Formulate a specific, achievable **sub-goal** for that tool.
-        4. Provide all necessary **context** (data, file names, variables) for the tool to function.
-
-        Response Format:
-        1.  **Justification:** Explain your choice of tool and sub-goal.
-        2.  **Context:** Provide all necessary information for the tool.
-        3.  **Sub-Goal:** State the specific objective for the tool.
-        4.  **Tool Name:** State the exact name of the selected tool.
-
-        Rules:
-        - Select only ONE tool.
-        - The sub-goal must be directly achievable by the selected tool.
-        - The Context section must contain all information the tool needs to function.
-        - The response must end with the Context, Sub-Goal, and Tool Name sections in that order, with no extra content.
-        This is the end of task_name=[next_step_tool_calling]
-
-    task_name=[generate_final_output]
-    Task: Generate the final output based on the query and the results from all tools used.
-
-        Context:
-        **Query:** question
-        **history tools called and outputs:** 
-
-        Instructions:
-        1. Review the query and the results from all tool executions.
-        2. Incorporate the relevant information to create a coherent, step-by-step final output.
-        This is the end of task_name=[generate_final_output]
-
-    [round=0]
-    Your current task is task_name=[query_analysis], your responses are as follows:\n
-  
-
-In this holistic prompt, each task_name=[...] actually corresponds to an agent in AgentFlow. The expected LLM output is the next-step task (or agent).
-
-    [round=0]
-    Your current task is task_name=[query_analysis], your responses are as follows:\n
-
-
-This prompt keeps appending new responses, including instructions to call an agent and the agent outputs, in an incremental style.
+In comparision, in AgentFLow the prompt of agent is a __transformation__ of these incremental-style history, such as well-organized history (by maintaining a key-value cache, called __memory__), extraction of the current agent related instructions (each agent's prompt is __distinctive__).
 
 ### Training Comparison
-We first look at the standard multi-step inference procedure.
+We first look at the standard multi-turn inference procedure.
 ```
 prompt1 --> response1 --> prompt2 --> response2 --> prompt3 --> response3 ... promptN --> responseN
 ```
@@ -210,18 +160,18 @@ The __response__ is direct output from a trainable LLM.
 
 ### Pros and Cons
 
-AgentFlow over Multi-step RL training
+AgentFlow over multi-turn RL training
 
 #### Pros
 1. Quite natural way to invoke and develop an agent, such as a planner, verifier, executor.
 2. The history information is organized into a structural module, often termed as memory in the agent scenario, which is more efficient for the LLM to manipulate. 
    
-   For example, when the history is too long, it is straightforward to do information compression and summarization on some key-value information (e.g. tool calling history), without touching critical key-value information (e.g. users' prompt and hard requirement). In comparison, in the multi-step RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish the important information.
+   For example, when the history is too long, it is straightforward to do information compression and summarization on some key-value information (e.g. tool calling history), without touching critical key-value information (e.g. users' prompt and hard requirement). In comparison, in the multi-turn RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish the important information.
 
 #### Cons
 1. Popular RL frameworks do not naturally support it, requiring heavy engineering work.
 2. More GPU cost, due to low KV cache. 
-3. When the step number is not big enough, I conjecture no significant difference with the multi-step RL training in performance.
+3. When the step number is not big enough, I conjecture no significant difference with the multi-turn RL training in performance.
 
 OpenRLHF provides the optimization backbone, while AgentFlow adds structured reasoning across multiple turns.  
 Together, they support **long-horizon agent behavior** instead of one-shot responses.
