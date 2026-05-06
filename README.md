@@ -24,9 +24,16 @@ I also share how I weighed the pros and cons.
 Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online reinforcement learning implementation that motivates breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
 
 Some concepts:
-- __Multi-turn RL training__, one trainable LLM serves multiple roles, such as tool calling (external tools return results), decision-making (whether to stop), final response generation.
-- __AgentFlow__, a set of agents collobarating to achieve one goal. The training utilizes a modified multi-turn RL and requires significant modification of popular framwork, OpenRLHF, VeRL.
-- __Multi-turn Agent RL training__, borrowing the concept of agent roles in __AgentFLow__, using the __Multi-turn RL training__. 
+- __Multi-turn RL training__
+  - One trainable LLM serves multiple roles.
+  - Such as tool calling (external tools return results), decision-making (whether to stop), final response generation.
+    
+- __AgentFlow__
+  - A set of agents collobarating to achieve one goal. 
+  - The training utilizes a modified multi-turn RL and requires significant modification of popular framwork, OpenRLHF, VeRL.
+    
+- __Multi-turn Agent RL training__
+  - Borrowing the concept of agent roles in __AgentFLow__, using the __Multi-turn RL training__. 
 
 This project combines:
 
