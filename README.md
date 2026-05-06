@@ -6,15 +6,13 @@
 
 ## Outline
 
-- [What This Repo Is](##what-this-repo-is)
-- [Why It Matters](##why-it-matters)
-  - [Prompt Comparison](##Training Comparison)
-  - [Training Comparison]()
-  - [Pros and Cons](Pros and Cons)
-
-- [AgentFlow Paper (Concise)](##agentflow-paper-concise)
-- [Quick Start](##quick-start)
-- [Main Paths](##main-paths)
+- [What This Repo Is](#what-this-repo-is)
+- [Why It Matters](#why-it-matters)
+  - [Prompt Comparison](#prompt-comparison)
+  - [Training Comparison](#training-comparison)
+  - [Pros and Cons](#pros-and-cons)
+- [How to modify OpenRLHF to support AgentFlow](#how-to-modify-openrlhf-to-support-agentflow)
+- [How to run](#how-to-run)
 
 ---
 
@@ -200,30 +198,51 @@ In this holistic prompt, each task_name=[...] actually corresponds to an agent i
 This prompt keeps appending new responses, including instructions to call an agent and the agent outputs, in an incremental style.
 
 ### Training Comparison
+We first look at the standard multi-step inference procedure.
+```
+prompt1 --> response1 --> prompt2 --> response2 --> prompt3 --> response3 ... promptN --> responseN
+```
+The __prompt__ is any of the initial prompt (question), tool calling result and other intermediate information, which are not trainable.
+The __response__ is direct output from a trainable LLM.
+
+#todo
+
 
 ### Pros and Cons
 
+AgentFlow over Multi-step RL training
+
+#### Pros
+1. Quite natural way to invoke and develop an agent, such as a planner, verifier, executor.
+2. The history information is organized into a structural module, often termed as memory in the agent scenario, which is more efficient for the LLM to manipulate. 
+   
+   For example, when the history is too long, it is straightforward to do information compression and summarization on some key-value information (e.g. tool calling history), without touching critical key-value information (e.g. users' prompt and hard requirement). In comparison, in the multi-step RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish the important information.
+
+#### Cons
+1. Popular RL frameworks do not naturally support it, requiring heavy engineering work.
+2. More GPU cost, due to low KV cache. 
+3. When the step number is not big enough, I conjecture no significant difference with the multi-step RL training in performance.
 
 OpenRLHF provides the optimization backbone, while AgentFlow adds structured reasoning across multiple turns.  
 Together, they support **long-horizon agent behavior** instead of one-shot responses.
 
-## AgentFlow Paper (Concise)
+## How to modify OpenRLHF to support AgentFlow 
 
-This repository mirrors that framing in code so RL can optimize not just response quality, but **end-to-end task execution quality**.
+todo
 
-## Quick Start
-
-```bash
-pip install "openrlhf[vllm]" --no-build-isolation
-python train/quick_start.py
-```
-
-## Main Paths
+## How to run
 
 - `openrlhf_agent/` - RLHF training, datasets, trainers, Ray/vLLM integration
 - `agentflow/` - agent pipeline, engines, tools, solver
 - `train/` - runnable training scripts and example agent envs
 - `scripts/` - shell launchers for common training setups
+  
+
+```bash
+  >> uv sync
+  >> python3 train/quick_start.py
+```
+
 
 ---
 
