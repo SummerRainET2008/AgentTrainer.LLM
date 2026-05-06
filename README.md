@@ -28,7 +28,7 @@ Some concepts:
   - One trainable LLM serves multiple roles.
   - Such as tool calling (external tools return results), decision-making (whether to stop), final response generation.
     
-- __AgentFlow__
+- **AgentFlow**
   - A set of agents collobarating to achieve one goal. 
   - The training utilizes a modified multi-turn RL and requires significant modification of popular framwork, OpenRLHF, VeRL.
     
