@@ -42,7 +42,7 @@ In comparison, an agent system maintains important information in a key-mapped s
 
 __Example: a planner's prompt__. 
 
-A planner agent encapsulates history with planning-related instructions, without instructions for a verifier agent or a solution-generating agent.
+A planner agent encapsulates history with planning-related instructions, without information for a verifier agent or a solution-generating agent.
 
 
 ```
@@ -63,8 +63,6 @@ Your response should include:
   2. A list of required skills, with a brief explanation for each.
   ...
 ```
-
-
 
 __Example: a verifier's prompt__. 
 
@@ -163,10 +161,17 @@ The __response__ is direct output from a trainable LLM.
 AgentFlow over multi-turn RL training
 
 #### Pros
-1. Quite natural way to invoke and develop an agent, such as a planner, verifier, executor.
-2. The history information is organized into a structural module, often termed as memory in the agent scenario, which is more efficient for the LLM to manipulate. 
-   
-   For example, when the history is too long, it is straightforward to do information compression and summarization on some key-value information (e.g. tool calling history), without touching critical key-value information (e.g. users' prompt and hard requirement). In comparison, in the multi-turn RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish the important information.
+The __first__ one, the AgentFlow is quite __a natural way__ to invoke and develop an agent, such as a planner, verifier, executor. 
+See the prompts exemplified above. 
+
+The __second__ one, the history information is organized into a structural __memory__, which is more efficient for the LLM to manipulate. 
+For example, when the history is too long, it is straightforward to do __information compression and summarization__ on some key-value information (e.g. tool calling history), without __touching/destroying__ critical key-value information (e.g. __users' prompt and hard requirements__).  
+
+In the multi-turn RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish important information from nosie.
+
+The __third__ one, AgentFlow allows auxiliary agents to alleviate the __workload__ of the planner. The planner only serves the role of decision maker, not serving verification like a verfier agent does, or generating executor commands like an exeutor agent does, or constructing the final answer like a generalist agent does.
+
+In the multi-turn RL training, one trainable LLM serves multiple roles, which proves an ineffective practice. 
 
 #### Cons
 1. Popular RL frameworks do not naturally support it, requiring heavy engineering work.
