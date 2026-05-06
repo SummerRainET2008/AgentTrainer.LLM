@@ -24,7 +24,8 @@ I also share how I weighed the pros and cons.
 Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online reinforcement learning implementation that motivates breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
 
 Some concepts:
-- __Multi-turn RL training__ - One trainable LLM serves multiple roles.
+- __Multi-turn RL training__
+  - One trainable LLM serves multiple roles.
   - Such as tool calling (external tools return results), decision-making (whether to stop), final response generation.
     
 - **AgentFlow**
@@ -36,13 +37,16 @@ Some concepts:
 
 This project combines:
 
-- **OpenRLHF-based training** (`openrlhf_agent/`) for scalable RLHF loops (PPO/Ray/vLLM), fixing minor bugs.
-- **AgentFlow-style solver logic** (`agentflow/`) 
-  - with role separation:
+- __AgentFlow-style solver logic__ (`agentflow/`) 
+  - Role separation:
   `Initializer -> Planner -> Executor -> Verifier-->Generalist`. 
   - I simplied and modified AgentFlow inference codes into __Multi-turn Agent RL trainig__ compatible.
-- **Training entrypoints** (`train/`, `scripts/`) 
-  - demonstrating how to train in OpenRLHF without modifying the framework.
+    
+- __OpenRLHF__ (`openrlhf_agent/`)
+  - Minor bugs were fixed.
+    
+- __Training entrypoints__ (`train/`, `scripts/`) 
+  - Demonstrating how to train __Multi-turn Agent RL__ in OpenRLHF.
 
 ## Why It Matters
 
