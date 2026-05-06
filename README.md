@@ -1,7 +1,7 @@
-# Agent Trainer
+# Train multi-turn Agents with RL in RLHF
 
 <p align="center">
-  <em>Train multi-turn LLM agents with RLHF, inspired by AgentFlow</em>
+  inspired by AgentFlow</em>
 </p>
 
 ## Outline
@@ -23,12 +23,20 @@ I also share how I weighed the pros and cons.
 
 Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online reinforcement learning implementation that motivates breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
 
+Some concepts:
+- __Multi-turn RL training__, one trainable LLM serves multiple roles, such as tool calling (external tools return results), decision-making (whether to stop), final response generation.
+- __AgentFlow__, a set of agents collobarating to achieve one goal. The training utilizes a modified multi-turn RL and requires significant modification of popular framwork, OpenRLHF, VeRL.
+- __Multi-turn Agent RL training__, borrowing the concept of agent roles in __AgentFLow__, using the __Multi-turn RL training__. 
+
 This project combines:
 
-- **OpenRLHF-based training** (`openrlhf_agent/`) for scalable RLHF loops (PPO/Ray/vLLM).
-- **AgentFlow-style solver logic** (`agentflow/`) with role separation:
-  `Initializer -> Planner -> Executor -> Verifier`. To better demonstrate the idea, I simplified AgentFlow while keeping the core code.
-- **Training entrypoints** (`train/`, `scripts/`) for real multi-GPU workflows. I demonstrate how to train in OpenRLHF without modifying fundamental code, rather than relying on heavy custom code from the original AgentFlow implementation.
+- **OpenRLHF-based training** (`openrlhf_agent/`) for scalable RLHF loops (PPO/Ray/vLLM), fixing minor bugs.
+- **AgentFlow-style solver logic** (`agentflow/`) 
+  - with role separation:
+  `Initializer -> Planner -> Executor -> Verifier-->Generalist`. 
+  - I simplied and modified AgentFlow inference codes into __Multi-turn Agent RL trainig__ compatible.
+- **Training entrypoints** (`train/`, `scripts/`) 
+  - demonstrating how to train in OpenRLHF without modifying the framework.
 
 ## Why It Matters
 
@@ -161,25 +169,23 @@ The __response__ is direct output from a trainable LLM.
 AgentFlow over multi-turn RL training
 
 #### Pros
-The __first__ one, the AgentFlow is quite __a natural way__ to invoke and develop an agent, such as a planner, verifier, executor. 
-See the prompts exemplified above. 
+- The __first__ one, the AgentFlow is quite __a natural way__ to manupilate an agent in traning and inference, such as a planner, verifier, executor. 
+  - See the prompts exemplified above. 
 
-The __second__ one, the history information is organized into a structural __memory__, which is more efficient for the LLM to manipulate. 
-For example, when the history is too long, it is straightforward to do __information compression and summarization__ on some key-value information (e.g. tool calling history), without __touching/destroying__ critical key-value information (e.g. __users' prompt and hard requirements__).  
+- The __second__ one, the history information is organized into a structural __memory__, which is more efficient for the LLM to manipulate. 
+  - For example, when the history is too long, it is straightforward to do __information compression and summarization__ on some key-value information (e.g. tool calling history), without __touching/destroying__ critical key-value information (e.g. __users' prompt and hard requirements__).  
+  - In the __multi-turn RL training__, all context information is organized as an unstructural string, which makes LLM harder to distinguish important information from nosie.
 
-In the multi-turn RL training, all context information is organized as an unstructural string, which makes LLM harder to distinguish important information from nosie.
-
-The __third__ one, AgentFlow allows auxiliary agents to alleviate the __workload__ of the planner. The planner only serves the role of decision maker, not serving verification like a verfier agent does, or generating executor commands like an exeutor agent does, or constructing the final answer like a generalist agent does.
-
-In the multi-turn RL training, one trainable LLM serves multiple roles, which proves an ineffective practice. 
+- The __third__ one, AgentFlow allows auxiliary agents to alleviate the __workload__ of the planner. 
+  - The planner only serves the role of decision maker, not serving verification like a verfier agent does, or generating executor commands like an exeutor agent does, or constructing the final answer like a generalist agent does.
+  - In the multi-turn RL training, one trainable LLM serves multiple roles, which proves an ineffective practice. 
 
 #### Cons
-1. Popular RL frameworks do not naturally support it, requiring heavy engineering work.
-2. More GPU cost, due to low KV cache. 
-3. When the step number is not big enough, I conjecture no significant difference with the multi-turn RL training in performance.
+- The __first__ one, popular RL frameworks do not naturally support it, requiring heavy engineering work.
+- The __second__ one, more GPU cost, due to low KV cache. 
+    - When the running turns are not big enough, I conjecture no significant difference with the __multi-turn Agent training__ in performance.
 
-OpenRLHF provides the optimization backbone, while AgentFlow adds structured reasoning across multiple turns.  
-Together, they support **long-horizon agent behavior** instead of one-shot responses.
+## From Multi-turn RL and AgentFlow to Multi-turn Agent RL 
 
 ## How to modify OpenRLHF to support AgentFlow 
 
