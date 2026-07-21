@@ -18,7 +18,7 @@
 
 ## What This Repo Is
 
-This repository started as an attempt to add AgentFlow as a generic plugin inside OpenRLHF. After implementation, a better direction emerged: keep OpenRLHF unchanged and show a **compatible integration pattern** in a lightweight way.
+This repository started as an attempt to add  as a generic plugin inside OpenRLHF. After implementation, a better direction emerged: keep OpenRLHF unchanged and show a **compatible integration pattern** in a lightweight way.
 I also share how I weighed the pros and cons.
 
 Reference paper: [AgentFlow](https://arxiv.org/pdf/2510.05592), an online reinforcement learning implementation that motivates breaking complex tasks into modular agent stages, where each stage has a focused responsibility and shared memory/state.
